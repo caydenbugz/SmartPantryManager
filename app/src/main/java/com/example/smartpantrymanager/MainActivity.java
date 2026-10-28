@@ -159,6 +159,7 @@ public class MainActivity extends Activity {
     void recipes() {
         start("Available Recipes");
         int count=0;
+        add("Recipes you can make from your pantry:",16);
         for(String[] r:recipes) if(available(r[1])) {
             count++;
             btn(r[0],()->details(r));
