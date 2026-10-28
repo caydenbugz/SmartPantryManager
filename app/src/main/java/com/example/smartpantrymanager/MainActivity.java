@@ -1,401 +1,249 @@
-
 package com.example.smartpantrymanager;
 
-import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.*;
 import android.os.Bundle;
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.Typeface;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.content.*;
+import android.database.*;
+import android.database.sqlite.*;
+import android.text.InputType;
+import android.view.*;
+import android.widget.*;
 
 public class MainActivity extends Activity {
     PantryDB db;
-    LinearLayout page;
-    String profileName = "My Pantry";
+    LinearLayout layout;
+    SharedPreferences prefs;
+    String profile = "My Pantry";
 
-    static class Recipe {
-        String name, description;
-        String[] ingredients;
-        double[] amounts;
-
-        Recipe(String n, String d, String[] i, double[] a) {
-            name = n;
-            description = d;
-            ingredients = i;
-            amounts = a;
-        }
-    }
-
-    final Recipe[] recipes = {
-            new Recipe("Cheese Omelette", "A quick cheesy egg breakfast.",
-                    new String[]{"Eggs", "Cheese", "Salt"}, new double[]{2, 1, 1}),
-            new Recipe("Tomato Sandwich", "A simple fresh sandwich.",
-                    new String[]{"Bread", "Tomato"}, new double[]{2, 1}),
-            new Recipe("Chicken and Rice", "Chicken served with rice.",
-                    new String[]{"Chicken", "Rice", "Oil"}, new double[]{1, 1, 1}),
-            new Recipe("Tomato Pasta", "Pasta with a tomato sauce.",
-                    new String[]{"Pasta", "Tomato", "Onion", "Oil"}, new double[]{1, 2, 1, 1}),
-            new Recipe("Banana Oats", "A simple breakfast bowl.",
-                    new String[]{"Oats", "Banana", "Milk"}, new double[]{1, 1, 1}),
-            new Recipe("Mashed Potatoes", "Soft mashed potatoes.",
-                    new String[]{"Potato", "Butter", "Milk"}, new double[]{2, 1, 1}),
-            new Recipe("Tuna Sandwich", "A quick tuna sandwich.",
-                    new String[]{"Bread", "Tuna"}, new double[]{2, 1}),
-            new Recipe("Garlic Chicken", "Garlic-flavoured chicken.",
-                    new String[]{"Chicken", "Garlic", "Oil"}, new double[]{1, 1, 1}),
-            new Recipe("Vegetable Rice", "Rice with vegetables.",
-                    new String[]{"Rice", "Carrot", "Onion", "Oil"}, new double[]{1, 1, 1, 1}),
-            new Recipe("Spinach Omelette", "Eggs with spinach.",
-                    new String[]{"Eggs", "Spinach", "Salt"}, new double[]{2, 1, 1}),
-            new Recipe("Pancakes", "Basic homemade pancakes.",
-                    new String[]{"Flour", "Eggs", "Milk", "Sugar"}, new double[]{1, 1, 1, 1}),
-            new Recipe("Cheese Toast", "Toasted bread with cheese.",
-                    new String[]{"Bread", "Cheese", "Butter"}, new double[]{2, 1, 1}),
-            new Recipe("Bean Rice Bowl", "Beans served over rice.",
-                    new String[]{"Beans", "Rice", "Onion"}, new double[]{1, 1, 1}),
-            new Recipe("Lemon Chicken", "Chicken with lemon flavour.",
-                    new String[]{"Chicken", "Lemon", "Oil"}, new double[]{1, 1, 1}),
-            new Recipe("Carrot Salad", "A simple carrot salad.",
-                    new String[]{"Carrot", "Lemon", "Salt"}, new double[]{1, 1, 1}),
-            new Recipe("Banana Pancakes", "Sweet banana pancakes.",
-                    new String[]{"Banana", "Flour", "Eggs"}, new double[]{1, 1, 1}),
-            new Recipe("Butter Pasta", "Pasta tossed with butter.",
-                    new String[]{"Pasta", "Butter", "Salt"}, new double[]{1, 1, 1}),
-            new Recipe("Chicken Sandwich", "Chicken between slices of bread.",
-                    new String[]{"Chicken", "Bread"}, new double[]{1, 2}),
-            new Recipe("Spinach Rice", "Rice with spinach.",
-                    new String[]{"Rice", "Spinach", "Garlic"}, new double[]{1, 1, 1}),
-            new Recipe("Tuna Rice Bowl", "A quick tuna and rice meal.",
-                    new String[]{"Tuna", "Rice", "Lemon"}, new double[]{1, 1, 1})
+    String[][] recipes = {
+            {"Cheese Omelette","Eggs:2,Cheese:1,Salt:1"},
+            {"Tomato Sandwich","Bread:2,Tomato:1"},
+            {"Chicken and Rice","Chicken:1,Rice:1,Oil:1"},
+            {"Tomato Pasta","Pasta:1,Tomato:2,Onion:1,Oil:1"},
+            {"Banana Oats","Oats:1,Banana:1,Milk:1"},
+            {"Mashed Potatoes","Potato:2,Butter:1,Milk:1"},
+            {"Tuna Sandwich","Bread:2,Tuna:1"},
+            {"Garlic Chicken","Chicken:1,Garlic:1,Oil:1"},
+            {"Vegetable Rice","Rice:1,Carrot:1,Onion:1,Oil:1"},
+            {"Spinach Omelette","Eggs:2,Spinach:1,Salt:1"},
+            {"Pancakes","Flour:1,Eggs:1,Milk:1,Sugar:1"},
+            {"Cheese Toast","Bread:2,Cheese:1,Butter:1"},
+            {"Bean Rice Bowl","Beans:1,Rice:1,Onion:1"},
+            {"Lemon Chicken","Chicken:1,Lemon:1,Oil:1"},
+            {"Carrot Salad","Carrot:1,Lemon:1,Salt:1"},
+            {"Banana Pancakes","Banana:1,Flour:1,Eggs:1"},
+            {"Butter Pasta","Pasta:1,Butter:1,Salt:1"},
+            {"Chicken Sandwich","Chicken:1,Bread:2"},
+            {"Spinach Rice","Rice:1,Spinach:1,Garlic:1"},
+            {"Tuna Rice Bowl","Tuna:1,Rice:1,Lemon:1"}
     };
 
-    @Override
-    public void onCreate(Bundle state) {
-        super.onCreate(state);
+    public void onCreate(Bundle b) {
+        super.onCreate(b);
+        prefs = getSharedPreferences("profile", MODE_PRIVATE);
+        profile = prefs.getString("name", "My Pantry");
         db = new PantryDB(this);
-        showHome();
+        home();
     }
 
-    TextView text(String value, int size) {
-        TextView t = new TextView(this);
-        t.setText(value);
-        t.setTextSize(size);
-        t.setPadding(12, 12, 12, 12);
-        return t;
+    void start(String title) {
+        ScrollView s = new ScrollView(this);
+        layout = new LinearLayout(this);
+        layout.setOrientation(1);
+        layout.setPadding(16, 16, 16, 16);
+        s.addView(layout);
+        setContentView(s);
+        add(title, 24);
+        String[] nav = {"Home","Pantry","Recipes","Profile"};
+        Runnable[] go = {this::home,this::pantry,this::recipes,this::profilePage};
+        LinearLayout bar = new LinearLayout(this);
+        for (int i=0;i<nav.length;i++) {
+            Button x = new Button(this);
+            x.setText(nav[i]);
+            final int n=i;
+            x.setOnClickListener(v -> go[n].run());
+            bar.addView(x,new LinearLayout.LayoutParams(0,-2,1));
+        }
+        layout.addView(bar);
     }
 
-    Button button(String label, Runnable action) {
+    void add(String t,int size) {
+        TextView x = new TextView(this);
+        x.setText(t);
+        x.setTextSize(size);
+        x.setPadding(8,10,8,10);
+        layout.addView(x);
+    }
+
+    void btn(String t,Runnable r) {
         Button b = new Button(this);
-        b.setText(label);
-        b.setOnClickListener(v -> action.run());
-        return b;
+        b.setText(t);
+        b.setOnClickListener(v -> r.run());
+        layout.addView(b);
     }
 
-    void startPage(String title) {
-        ScrollView scroll = new ScrollView(this);
-        page = new LinearLayout(this);
-        page.setOrientation(LinearLayout.VERTICAL);
-        page.setPadding(16, 12, 16, 20);
+    void home() {
+        start("Smart Pantry Manager");
+        add("Welcome, "+profile,20);
+        add("Pantry items: "+db.count(),16);
+        btn("Manage Pantry",this::pantry);
+        btn("Find Recipes",this::recipes);
+    }
 
-        TextView heading = text(title, 25);
-        heading.setTypeface(null, Typeface.BOLD);
-        page.addView(heading);
-
-        LinearLayout nav = new LinearLayout(this);
-        nav.setOrientation(LinearLayout.HORIZONTAL);
-
-        String[] labels = {"Home", "Pantry", "Recipes", "Profile"};
-        Runnable[] actions = {
-                this::showHome,
-                this::showPantry,
-                this::showRecipes,
-                this::showProfile
-        };
-
-        for (int i = 0; i < labels.length; i++) {
-            Button b = new Button(this);
-            b.setText(labels[i]);
-            b.setTextSize(10);
-            final int index = i;
-            b.setOnClickListener(v -> actions[index].run());
-            nav.addView(b, new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+    void pantry() {
+        start("My Pantry");
+        btn("Add Ingredient",()->edit(null,0,"item",""));
+        Cursor c=db.items();
+        while(c.moveToNext()) {
+            String n=c.getString(0),u=c.getString(2),e=c.getString(3);
+            double q=c.getDouble(1);
+            String label=n+" - "+q+" "+u+(e==null?"":" | Expiry: "+e);
+            Button b=new Button(this);
+            b.setText(label);
+            b.setOnClickListener(v->edit(n,q,u,e));
+            b.setOnLongClickListener(v->{
+                new AlertDialog.Builder(this).setMessage("Delete "+n+"?")
+                        .setNegativeButton("Cancel",null)
+                        .setPositiveButton("Delete",(d,w)->{db.delete(n);pantry();})
+                        .show();
+                return true;
+            });
+            layout.addView(b);
         }
-
-        page.addView(nav);
-        scroll.addView(page);
-        setContentView(scroll);
-    }
-
-    void showHome() {
-        startPage("Smart Pantry Manager");
-        page.addView(text("Welcome, " + profileName + "!", 20));
-        page.addView(text(
-                "Manage your food, track quantities and discover recipes using ingredients you have.",
-                16));
-        page.addView(button("Manage Pantry", this::showPantry));
-        page.addView(button("Find Available Recipes", this::showRecipes));
-        page.addView(text(
-                "Recipes are suggested only when every required ingredient is available in the required quantity.",
-                14));
-        page.addView(text("Total pantry items: " + db.countItems(), 16));
-    }
-
-    void showPantry() {
-        startPage("My Pantry");
-        page.addView(text(
-                "Tap an item to edit its quantity. Long-press to delete it.", 14));
-        page.addView(button("+ Add Pantry Item", () -> itemDialog(null, 0)));
-
-        Cursor c = db.getItems();
-
-        if (!c.moveToFirst()) {
-            page.addView(text(
-                    "Your pantry is empty. Add an item to get started.", 16));
-        } else {
-            do {
-                String name = c.getString(0);
-                double quantity = c.getDouble(1);
-
-                Button item = button(name + " — " + quantity,
-                        () -> itemDialog(name, quantity));
-
-                item.setOnLongClickListener(v -> {
-                    new AlertDialog.Builder(this)
-                            .setTitle("Delete " + name + "?")
-                            .setMessage("Remove this item from your pantry?")
-                            .setNegativeButton("Cancel", null)
-                            .setPositiveButton("Delete", (d, w) -> {
-                                db.deleteItem(name);
-                                showPantry();
-                            })
-                            .show();
-                    return true;
-                });
-
-                page.addView(item);
-            } while (c.moveToNext());
-        }
-
         c.close();
     }
 
-    void itemDialog(String oldName, double oldQuantity) {
-        LinearLayout form = new LinearLayout(this);
-        form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(20, 5, 20, 5);
-
-        EditText name = new EditText(this);
-        name.setHint("Ingredient name (e.g. Eggs)");
-        name.setSingleLine(true);
-        if (oldName != null) {
-            name.setText(oldName);
-        }
-        form.addView(name);
-
-        EditText quantity = new EditText(this);
-        quantity.setHint("Quantity available");
-        quantity.setInputType(8194);
-        if (oldName != null) {
-            quantity.setText(String.valueOf(oldQuantity));
-        }
-        form.addView(quantity);
-
-        new AlertDialog.Builder(this)
-                .setTitle(oldName == null ? "Add Ingredient" : "Edit Ingredient")
-                .setView(form)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String n = name.getText().toString().trim();
-
+    void edit(String old,double qty,String unit,String expiry) {
+        LinearLayout f=new LinearLayout(this);
+        f.setOrientation(1);
+        EditText n=field("Ingredient name",old);
+        EditText q=field("Quantity",old==null?"":""+qty);
+        q.setInputType(8194);
+        EditText u=field("Unit",unit);
+        EditText e=field("Expiry YYYY-MM-DD",expiry);
+        f.addView(n);f.addView(q);f.addView(u);f.addView(e);
+        new AlertDialog.Builder(this).setTitle("Pantry Item").setView(f)
+                .setNegativeButton("Cancel",null)
+                .setPositiveButton("Save",(d,w)->{
                     try {
-                        double q = Double.parseDouble(
-                                quantity.getText().toString().trim());
-
-                        if (n.isEmpty() || q < 0 || !Double.isFinite(q)) {
-                            Toast.makeText(this,
-                                    "Enter a name and a valid quantity.",
-                                    Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        db.saveItem(n, q, oldName);
-                        showPantry();
-
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(this,
-                                "Enter a valid quantity.",
-                                Toast.LENGTH_LONG).show();
+                        String name=n.getText().toString().trim();
+                        String un=u.getText().toString().trim();
+                        String ex=e.getText().toString().trim();
+                        double amount=Double.parseDouble(q.getText().toString());
+                        if(name.isEmpty()||un.isEmpty()||amount<0||
+                                (!ex.isEmpty()&&!ex.matches("\\d{4}-\\d{2}-\\d{2}")))
+                            throw new Exception();
+                        db.save(name,amount,un,ex,old);
+                        pantry();
+                    } catch(Exception x) {
+                        Toast.makeText(this,"Check the name, quantity, unit and date.",0).show();
                     }
-                })
-                .show();
+                }).show();
     }
 
-    boolean canMake(Recipe r) {
-        for (int i = 0; i < r.ingredients.length; i++) {
-            if (db.getQuantity(r.ingredients[i]) < r.amounts[i]) {
-                return false;
-            }
+    EditText field(String hint,String value) {
+        EditText e=new EditText(this);
+        e.setHint(hint);
+        e.setText(value==null?"":value);
+        return e;
+    }
+
+    boolean available(String list) {
+        for(String item:list.split(",")) {
+            String[] a=item.split(":");
+            if(db.quantity(a[0])<Double.parseDouble(a[1])) return false;
         }
         return true;
     }
 
-    void showRecipes() {
-        startPage("Available Recipes");
-
-        page.addView(text(
-                "Only recipes with every required ingredient in sufficient quantity are shown.",
-                14));
-
-        int count = 0;
-
-        for (Recipe r : recipes) {
-            if (canMake(r)) {
-                count++;
-                page.addView(button(r.name, () -> showRecipeDetails(r)));
-            }
+    void recipes() {
+        start("Available Recipes");
+        int count=0;
+        for(String[] r:recipes) if(available(r[1])) {
+            count++;
+            btn(r[0],()->details(r));
         }
-
-        if (count == 0) {
-            page.addView(text("No matching recipes found.", 17));
-
-            page.addView(text(
-                    "To discover recipes, open your Pantry and add the ingredients you have available. "
-                            + "Make sure each ingredient has enough quantity for the recipe.",
-                    14));
-
-            page.addView(button("Open Pantry", this::showPantry));
-        } else {
-            page.addView(text(count + " matching recipes found.", 14));
+        if(count==0) {
+            add("No matching recipes. Add ingredients or increase quantities.",16);
+            btn("Open Pantry",this::pantry);
         }
     }
 
-    void showRecipeDetails(Recipe r) {
-        startPage(r.name);
-        page.addView(text(r.description, 17));
-        page.addView(text("Required ingredients:", 18));
-
-        for (int i = 0; i < r.ingredients.length; i++) {
-            page.addView(text(
-                    "• " + r.ingredients[i] + ": " + r.amounts[i], 16));
+    void details(String[] r) {
+        start(r[0]);
+        add("Required ingredients:",18);
+        for(String item:r[1].split(",")) {
+            String[] a=item.split(":");
+            add(a[0]+": "+a[1],16);
         }
-
-        page.addView(text(
-                "Preparation: Gather the listed ingredients, prepare them safely, cook or combine as appropriate, and check that the food is fully cooked before serving.",
-                16));
-
-        page.addView(button("Back to Recipes", this::showRecipes));
+        add("Preparation: Prepare the ingredients, cook or combine them appropriately, and check that the food is fully cooked before serving.",16);
+        btn("Back to Recipes",this::recipes);
     }
 
-    void showProfile() {
-        startPage("Profile and Settings");
-
-        EditText name = new EditText(this);
-        name.setHint("Your name");
-        name.setSingleLine(true);
-        name.setText(profileName);
-
-        page.addView(text("Profile name", 16));
-        page.addView(name);
-
-        page.addView(button("Save Profile", () -> {
-            String n = name.getText().toString().trim();
-
-            if (!n.isEmpty()) {
-                profileName = n;
-                Toast.makeText(this,
-                        "Profile saved.", Toast.LENGTH_SHORT).show();
-                showProfile();
-            } else {
-                Toast.makeText(this,
-                        "Enter a profile name.", Toast.LENGTH_SHORT).show();
+    void profilePage() {
+        start("Profile and Settings");
+        EditText n=field("Your name",profile);
+        layout.addView(n);
+        btn("Save Profile",()->{
+            String name=n.getText().toString().trim();
+            if(name.isEmpty()) {
+                Toast.makeText(this,"Enter a name",0).show();
+                return;
             }
-        }));
+            profile=name;
+            prefs.edit().putString("name",profile).apply();
+            Toast.makeText(this,"Profile saved",0).show();
+            profilePage();
+        });
+    }
 
-        page.addView(text("Storage: Local SQLite database", 14));
-        page.addView(text(
-                "Recipe matching requires every listed ingredient and quantity to be available.",
-                14));
+    public void onDestroy() {
+        if(db!=null) db.close();
+        super.onDestroy();
     }
 
     static class PantryDB extends SQLiteOpenHelper {
-        PantryDB(Context context) {
-            super(context, "smart_pantry.db", null, 1);
+        PantryDB(Context c) { super(c,"pantry.db",null,2); }
+
+        public void onCreate(SQLiteDatabase d) {
+            d.execSQL("CREATE TABLE pantry(name TEXT PRIMARY KEY COLLATE NOCASE,quantity REAL NOT NULL,unit TEXT NOT NULL DEFAULT 'item',expiry TEXT)");
         }
 
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            db.execSQL(
-                    "CREATE TABLE pantry (name TEXT PRIMARY KEY COLLATE NOCASE, "
-                            + "quantity REAL NOT NULL)");
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        }
-
-        void saveItem(String name, double quantity, String oldName) {
-            SQLiteDatabase d = getWritableDatabase();
-
-            if (oldName != null && !oldName.equalsIgnoreCase(name)) {
-                d.delete("pantry", "name=?", new String[]{oldName});
+        public void onUpgrade(SQLiteDatabase d,int old,int now) {
+            if(old<2) {
+                d.execSQL("ALTER TABLE pantry ADD COLUMN unit TEXT NOT NULL DEFAULT 'item'");
+                d.execSQL("ALTER TABLE pantry ADD COLUMN expiry TEXT");
             }
-
-            ContentValues values = new ContentValues();
-            values.put("name", name);
-            values.put("quantity", quantity);
-
-            d.insertWithOnConflict(
-                    "pantry", null, values, SQLiteDatabase.CONFLICT_REPLACE);
         }
 
-        Cursor getItems() {
-            return getReadableDatabase().rawQuery(
-                    "SELECT name, quantity FROM pantry ORDER BY name", null);
+        void save(String n,double q,String u,String e,String old) {
+            SQLiteDatabase d=getWritableDatabase();
+            if(old!=null&&!old.equalsIgnoreCase(n))
+                d.delete("pantry","name=?",new String[]{old});
+            ContentValues v=new ContentValues();
+            v.put("name",n);v.put("quantity",q);v.put("unit",u);
+            if(e.isEmpty())v.putNull("expiry");else v.put("expiry",e);
+            d.insertWithOnConflict("pantry",null,v,5);
         }
 
-        double getQuantity(String name) {
-            Cursor c = getReadableDatabase().rawQuery(
-                    "SELECT quantity FROM pantry WHERE name=? COLLATE NOCASE",
-                    new String[]{name});
+        Cursor items() {
+            return getReadableDatabase().rawQuery("SELECT name,quantity,unit,expiry FROM pantry ORDER BY name",null);
+        }
 
-            double q = 0;
-
-            if (c.moveToFirst()) {
-                q = c.getDouble(0);
-            }
-
+        double quantity(String n) {
+            Cursor c=getReadableDatabase().rawQuery("SELECT quantity FROM pantry WHERE name=? COLLATE NOCASE",new String[]{n});
+            double q=c.moveToFirst()?c.getDouble(0):0;
             c.close();
             return q;
         }
 
-        void deleteItem(String name) {
-            getWritableDatabase().delete(
-                    "pantry", "name=?", new String[]{name});
+        void delete(String n) {
+            getWritableDatabase().delete("pantry","name=?",new String[]{n});
         }
 
-        int countItems() {
-            Cursor c = getReadableDatabase().rawQuery(
-                    "SELECT COUNT(*) FROM pantry", null);
-
-            int count = 0;
-
-            if (c.moveToFirst()) {
-                count = c.getInt(0);
-            }
-
-            c.close();
-            return count;
+        int count() {
+            Cursor c=getReadableDatabase().rawQuery("SELECT COUNT(*) FROM pantry",null);
+            c.moveToFirst();int n=c.getInt(0);c.close();return n;
         }
     }
 }
