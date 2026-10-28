@@ -93,6 +93,7 @@ public class MainActivity extends Activity {
     void pantry() {
         start("My Pantry");
         btn("Add Ingredient",()->edit(null,0,"item",""));
+        if(db.count()==0) add("Your pantry is empty. Add an ingredient to get started.",16);
         Cursor c=db.items();
         while(c.moveToNext()) {
             String n=c.getString(0),u=c.getString(2),e=c.getString(3);
