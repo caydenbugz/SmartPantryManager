@@ -85,6 +85,7 @@ public class MainActivity extends Activity {
     void home() {
         start("Smart Pantry Manager");
         add("Welcome, "+profile,20);
+        add("Keep track of ingredients and discover recipes you can make.",16);
         add("Pantry items: "+db.count(),16);
         btn("Manage Pantry",this::pantry);
         btn("Find Recipes",this::recipes);
