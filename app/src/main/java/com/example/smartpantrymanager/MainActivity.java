@@ -178,7 +178,8 @@ public class MainActivity extends Activity {
             String[] a=item.split(":");
             add(a[0]+": "+a[1],16);
         }
-        add("Preparation: Prepare the ingredients, cook or combine them appropriately, and check that the food is fully cooked before serving.",16);
+        add("Preparation Instructions",18);
+        add("Prepare the ingredients, cook or combine them appropriately, and check that the food is fully cooked before serving.",16);
         btn("Back to Recipes",this::recipes);
     }
 
