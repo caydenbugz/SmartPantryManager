@@ -160,6 +160,7 @@ public class MainActivity extends Activity {
 
     void recipes() {
         start("Available Recipes");
+        add("Only recipes with all required ingredients and quantities are shown.",14);
         int count=0;
         add("Recipes you can make from your pantry:",16);
         for(String[] r:recipes) if(available(r[1])) {
