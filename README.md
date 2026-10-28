@@ -37,6 +37,17 @@ The application uses a local SQLite database named `smart_pantry.db` to store pa
 - `build.gradle` — Project-level Gradle configuration.
 - `settings.gradle` — Gradle project settings.
 - `gradle/` — Gradle wrapper configuration.
+## Current Implementation Notes
+
+- **Pantry storage:** Ingredient names and quantities are stored in a local SQLite database.
+- **Recipe matching:** Suggested recipes are displayed only when all required ingredients are available in sufficient quantities.
+- **Input validation:** The app checks ingredient names and quantities before saving.
+- **Recipe data:** The current recipe collection is defined in the Java source code.
+- **Profile:** Profile information is currently held in memory and is not permanently stored.
+
+## Testing
+
+The pantry and recipe-matching functionality can be tested by adding ingredients with different quantities and checking whether the suggested recipes change accordingly. Invalid ingredient entries should display a validation message.
 
 ## Student Information
 **Student Number:** 402410460  
